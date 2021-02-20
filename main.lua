@@ -17,8 +17,16 @@ local act = Actor(0, 0)
 
 function love.update()
 	local mx, my = love.mouse.getPosition()
-	act.location.x = mx
-	act.location.y = my
+
+	local x, y = 0, 0
+	if love.keyboard.isDown("left") then x = x - 1 end
+	if love.keyboard.isDown("right") then x = x + 1 end
+	if love.keyboard.isDown("up") then y = y - 1 end
+	if love.keyboard.isDown("down") then y = y + 1 end
+
+	act.velocity.x = x
+	act.velocity.y = y
+
 	if act:phys(world) then
 		color = {1, 0, 0, 1}
 	else

@@ -20,38 +20,43 @@ function Actor:phys(world)
 
 	local hit = false
 
-	y = y + world.gravity * self.gravity
+	vy = vy + world.gravity * self.gravity
+	y = y + vy
 	local top = floor((y - hh) / tileSize)
 	local bottom = floor((y + hh) / tileSize)
-	local left = floor((x - hw) / tileSize)
-	local right = floor((x + hw) / tileSize)
+	local left = floor((x - hw + 0.5) / tileSize)
+	local right = floor((x + hw - 0.5) / tileSize)
 	for n = left, right do
 		if world:getBlock_Tilespace(n, top).isSolid then
 			--hit ceiling
 			hit = true
+			y = top * tileSize + tileSize + hh
 		end
 
 		if world:getBlock_Tilespace(n, bottom).isSolid then
 			--hit floor
 			hit = true
+			y = bottom * tileSize - hh
 		end
 	end
 
 	vx = vx * self.friction
 	x = x + vx
-	top = floor((y - hh) / tileSize)
-	bottom = floor((y + hh) / tileSize)
+	top = floor((y - hh + 0.5) / tileSize)
+	bottom = floor((y + hh - 0.5) / tileSize)
 	left = floor((x - hw) / tileSize)
 	right = floor((x + hw) / tileSize)
 	for n = top, bottom do
 		if world:getBlock_Tilespace(left, n).isSolid then
 			--hit left
 			hit = true
+			x = left * tileSize + tileSize + hw
 		end
 
 		if world:getBlock_Tilespace(right, n).isSolid then
 			--hit right
 			hit = true
+			x = right * tileSize - hw
 		end
 	end
 
