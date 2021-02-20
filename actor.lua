@@ -2,7 +2,8 @@ local floor = math.floor
 
 Actor = class {}
 
-function Actor:init(x, y)
+function Actor:init(x, y, name)
+	self.name = name or "New Actor"
 	self.location = vector.isVector(x) and x.copy() or vector(x, y)
 	self.size = vector(12, 12)
 	self.halfSize = vector(6, 6)
@@ -13,8 +14,9 @@ function Actor:init(x, y)
 	self.friction = 1
 	self.airFriction = 0.5
 
-	self.accel = 1.25
-	self.walkSpeed = 2.75
+	self.accel = 0.25
+	self.lastAccel = 0
+	self.walkSpeed = 1.25
 	self.quickTurn = 2
 	self.jumpForce = -6
 	self.maxJumps = 1
@@ -24,6 +26,7 @@ end
 function Actor:addMovement(x, y)
 	local turnAmt = sign(x) ~= sign(self.velocity.x) and self.quickTurn or 1
 	local accel = self.accel * x * (turnAmt * self.air > 0 and 0.5 or 1)
+	self.lastAccel = accel
 	local vx = self.velocity.x + accel
 	-- local vy = self.velocity.y + self.accel * y
 	self.velocity.x = math.max(-self.walkSpeed, math.min(vx, self.walkSpeed))
@@ -76,8 +79,9 @@ function Actor:phys(world)
 		end
 	end
 
-	vx = lerp(vx, 0, 0.4 * (self.air > 0 and self.airFriction or self.friction))
-	print(vx, self.air)
+	if self.lastAccel == 0 then
+		vx = lerp(vx, 0, 0.4 * (self.air > 0 and self.airFriction or self.friction))
+	end
 	if math.abs(vx) <= 0.01 then
 		vx = 0
 	end

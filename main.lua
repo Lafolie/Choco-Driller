@@ -1,10 +1,12 @@
+love.graphics.setDefaultFilter("nearest", "nearest")
+
 class = require "lib.class"
 vector = require "lib.brinevector.brinevector"
 
 log = require "lib.logger"
 log:init "global"
 
-love.graphics.setDefaultFilter("nearest", "nearest")
+require "player"
 
 function lerp(a, b, x)
 	return (1 - x) * a + x * b
@@ -74,6 +76,10 @@ function getCanvasScale()
 	return canvasScale
 end
 
+-- State ----------------------------------------------------------------------
+local p1 = Player(8, 8)
+
+
 -------------------------------------------------------------------------------
 -- Main Callbacks
 -------------------------------------------------------------------------------
@@ -85,27 +91,18 @@ function love.load()
 	regenerateCanvasScale()
 end
 
-local color
-require "actor"
-local act = Actor(0, 0)
-
 function love.update()
 	local mx, my = love.mouse.getPosition()
 
 	local x = 0
-	if love.keyboard.isDown("left") then x = x - 1 end
-	if love.keyboard.isDown("right") then x = x + 1 end
+	if love.keyboard.isScancodeDown("a") then x = x - 1 end
+	if love.keyboard.isScancodeDown("d") then x = x + 1 end
 
 	-- act.velocity.x = x * 1.75
-	act:addMovement(x)
+	p1:addMovement(x)
 	-- act.velocity.y = y
 
-	if act:phys(world) then
-		color = {1, 0, 0, 1}
-	else
-		color = {1, 1, 1, 1}
-	end
-
+	p1:phys(world)
 	world:update()
 end
 
@@ -116,9 +113,7 @@ function love.draw()
     love.graphics.clear(0.2, 0.2, 0.2)
 	love.graphics.setColor(1, 1, 1, 1)
 	world:draw()
-
-	love.graphics.setColor(color)
-	act:draw()
+	p1:draw()
 	love.graphics.setCanvas()
 
 
@@ -151,14 +146,14 @@ function love.keypressed(key, scan, isRepeat)
 		love.event.push "quit"
 	end
 
-	if key == "z" then
-		act:startJump()
+	if key == "space" then
+		p1:startJump()
 	end
 end
 
 function love.keyreleased(key, scan)
-	if key == "z" then
-		act:stopJump()
+	if key == "space" then
+		p1:stopJump()
 	end
 end
 
