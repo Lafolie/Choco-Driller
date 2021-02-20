@@ -1,4 +1,6 @@
 require "actor"
+require "inventory"
+require "hotBar"
 
 local armImg = love.graphics.newImage("armTest.png")
 
@@ -19,6 +21,9 @@ function Player:init(x, y)
 
 	self.aim = vector(0, 0)
 	self.armRot = 0
+
+	self.inventory.numSlots = 24
+	self.hotBar = HotBar()
 end
 
 function Player:setAim(x, y)

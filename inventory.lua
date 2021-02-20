@@ -1,4 +1,7 @@
-Inventory = class {}
+Inventory = class 
+{
+	iconSize = 16
+}
 
 function Inventory:init(numSlots)
 	self.numSlots = numSlots or 8

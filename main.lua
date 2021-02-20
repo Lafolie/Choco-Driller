@@ -19,6 +19,7 @@ end
 -- Canvas ---------------------------------------------------------------------
 local mainCanvas
 local nativeRes = vector(640, 360)
+
 -- local nativeRes = vector(1024, 576)
 local targetRes = vector(love.graphics.getDimensions())
 local canvasScale = vector(1, 1)
@@ -119,6 +120,9 @@ function love.draw()
 	love.graphics.setColor(1, 1, 1, 1)
 	world:draw()
 	p1:draw()
+
+	p1.hotBar:draw(5, 5)
+
 	love.graphics.setCanvas()
 
 

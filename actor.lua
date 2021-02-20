@@ -1,3 +1,4 @@
+require "inventory"
 local floor = math.floor
 
 Actor = class {}
@@ -21,6 +22,8 @@ function Actor:init(x, y, name)
 	self.jumpForce = -6
 	self.maxJumps = 1
 	self.jumps = 0
+
+	self.inventory = Inventory()
 end
 
 function Actor:addMovement(x, y)
