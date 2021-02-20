@@ -5,6 +5,7 @@ Block = class {}
 function Block:init(atlas, x, y, name, isSolid)
 	self.name = name
 	self.isSolid = isSolid
+	self.toughness = 1
 
 	--check that this isn't a nullblock (see world.lua)
 	if type(atlas) ~= "string" then

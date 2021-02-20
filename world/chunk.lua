@@ -61,6 +61,18 @@ function Chunk:getBlockId(x, y)
 	return id
 end
 
+function Chunk:setBlockId(x, y, id)
+	if not (x < 0 or x >= self.chunkSize or
+			y < 0 or y >= self.chunkSize)
+	then
+		self[y][x][1] = id
+		return true
+	else
+		-- return self:getNeighbouringBlockId(x, y) or 0
+	end
+
+end
+
 function Chunk:getNeighbouringBlockId(x, y)
 	if y < 0 and self.north then
 		return self.north:getBlockId(x, self.chunkSize + y)
@@ -99,26 +111,26 @@ function Chunk:autoTile()
 
 			local other = self:getBlockId(x, y - 1)
 			quadId = quadId + (tile == other and 1 or 0)
-			isOuterTile = (tile ~= 0 and other == 0) or isOuterTile
+			isOuterTile = other == 0 or isOuterTile
 
 			other = self:getBlockId(x - 1, y)
 			quadId = quadId + (tile == other and 2 or 0)
-			isOuterTile = (tile ~= 0 and other == 0) or isOuterTile
+			isOuterTile = other == 0 or isOuterTile
 
 
 			other = self:getBlockId(x + 1, y)
 			quadId = quadId + (tile == other and 4 or 0)
-			isOuterTile = (tile ~= 0 and other == 0) or isOuterTile
+			isOuterTile = other == 0 or isOuterTile
 
 
 			other = self:getBlockId(x, y + 1)
 			quadId = quadId + (tile == other and 8 or 0)
-			isOuterTile = (tile ~= 0 and other == 0) or isOuterTile
+			isOuterTile = other == 0 or isOuterTile
 
 
 			block[2] = quadId
 
-			if isOuterTile then
+			if tile~= 0 and isOuterTile then
 				lightTiles[block[3]] = block[3]
 			end
 		end
@@ -133,18 +145,23 @@ function Chunk:updateLightTiles(lighting, newLightTiles)
 
 	--remove old unused tiles
 	for _, oldTile in ipairs(self.lightTiles) do
-		if not newLightTiles[oldTile] then
+		if newLightTiles[oldTile] then
+			newLightTiles[oldTile] = nil
+			insert(lightTiles, oldTile)
+		else
 			lighting:removePolygon(oldTile)
+			print "remvoed a tile"
 		end
 	end
 
 	--update lighting
-	local n = 1
+	local n = 0
 	for _, v in pairs(newLightTiles) do
 		insert(lightTiles, v)
 		lighting:addPolygon(v)
 		n = n + 1
 	end
+	log:echo("Added %d polygons", n)
 
 	log:echo "Done"
 	self.lightTiles = lightTiles

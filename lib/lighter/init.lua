@@ -250,7 +250,9 @@ local Lighter = Class{
     self.visibilityPolygons = {}
     self.stencilFunctions = {}
 
-    self.litPolygons = options.litPolygons
+    if options then
+      self.litPolygons = options.litPolygons
+    end
   end,
   addLight = function(self, x, y, radius, r, g, b, a, gradientImage)
     local light = {
@@ -288,25 +290,26 @@ local Lighter = Class{
   end,
   addPolygon = function(self, polygon)
     local newPolygon = {}
+    newPolygon.original = polygon
+
     for i, coordinate in ipairs(polygon) do
       newPolygon[i] = coordinate
     end
 
-    table.insert(self.polygons, newPolygon)
-    self.polygonHash:add(newPolygon, getPolygonBoundingBox(newPolygon))
-
     local x, y, w, h = getPolygonBoundingBox(newPolygon)
+
+    table.insert(self.polygons, newPolygon)
+    self.polygonHash:add(newPolygon, x, y, w, h)
+
     self.lightHash:each(x, y, w, h, function(light)
       updateLight(self, light)
     end)
-
-    return newPolygon
   end,
   removePolygon = function(self, polygon)
     local x, y, w, h = getPolygonBoundingBox(polygon)
     for i, existingPolygon in ipairs(self.polygons) do
-      if existingPolygon == polygon then
-        self.polygonHash:remove(polygon)
+      if existingPolygon.original == polygon then
+        self.polygonHash:remove(existingPolygon)
         table.remove(self.polygons, i)
         goto continue
       end

@@ -79,12 +79,16 @@ end
 -- State ----------------------------------------------------------------------
 local p1 = Player(8, 8)
 
-
+local function screenToWorld(x, y)
+	x = x / canvasScale.x - canvasOffset.x
+	y = y / canvasScale.y - canvasOffset.y
+	return x, y
+end
 -------------------------------------------------------------------------------
 -- Main Callbacks
 -------------------------------------------------------------------------------
 require "world.world"
-local world = World(4, 4)
+local world = World(3, 3)
 
 function love.load()
 	regenerateCanvas()
@@ -93,6 +97,7 @@ end
 
 function love.update()
 	local mx, my = love.mouse.getPosition()
+	p1:setAim(screenToWorld(mx, my))
 
 	local x = 0
 	if love.keyboard.isScancodeDown("a") then x = x - 1 end
@@ -166,9 +171,9 @@ function love.mousemoved(x, y, dx, dy)
 end
 
 function love.mousepressed(x, y, btn)
-	x = x / canvasScale.x
-	y = y / canvasScale.y
-	world:mousePressed(x, y, btn)
+	x, y = screenToWorld(x, y)
+	world:damage(x, y, 100)
+	-- world:mousePressed(x, y, btn)
 end
 
 function love.mousereleased(x, y, btn)

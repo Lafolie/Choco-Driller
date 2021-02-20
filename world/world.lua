@@ -26,8 +26,12 @@ World = class
 	tileSizePx = tileSizePx
 }
 
+local damagedBlocks = {}
+
 function World:init(width, height)
 	self.tileset = Atlas("testTiles.png", tileSizePx)
+	self.dirtyChunks = {}
+
 	chunkSize = Chunk.chunkSize
 	chunkSizePx = Chunk.chunkSize * self.tileset.gridSize
 
@@ -133,7 +137,15 @@ end
 
 local light = lighting:addLight(0, 0, 256, 1, 1, 1, 1)
 local lights = {}
+
 function World:update()
+	for n = #self.dirtyChunks, 1, -1 do
+		local chunk = table.remove(self.dirtyChunks, n)
+		local lightTiles = chunk:autoTile()
+		chunk:updateLightTiles(lighting, lightTiles)
+		chunk:generateBatch(blockList)
+	end
+
 	local mx, my = love.mouse.getPosition()
 	local s = getCanvasScale()
 	lighting:updateLight(light, mx / s.x, my / s.y)
@@ -156,6 +168,75 @@ function World:mousePressed(x, y, btn)
 	end
 end
 
+function World:damage(x, y, dmg)
+	local tx = floor(x / tileSizePx)
+	local ty = floor(y / tileSizePx)
+
+	local block = self:getBlock_Tilespace(tx, ty)
+
+	print(tx, ty)
+	if block == nullBlock then
+		return
+	end
+
+	local id = string.format("%d:%d", tx, ty)
+	local dmgBlock = damagedBlocks[id]
+	if not dmgBlock then
+		dmgBlock = {tx, ty, 100}
+		damagedBlocks[id] = dmgBlock
+	end
+
+	dmgBlock[3] = dmgBlock[3] - dmg * block.toughness
+	print(id, dmgBlock[3])
+	if dmgBlock[3] <= 0 then
+		print "destroying"
+		damagedBlocks[id] = nil
+		self:setBlock_Tilespace(tx, ty, 0)
+		self.isDirty = true
+	end
+end
+
+function World:addDirtyChunk(chunk)
+	for k, ch in ipairs(self.dirtyChunks) do
+		if ch == chunk then
+			return
+		end
+	end
+
+	table.insert(self.dirtyChunks, chunk)
+end
+
+function World:setBlock_Tilespace(x, y, id)
+	--chunkspace xy
+	local cx = floor(x / chunkSize)
+	local cy = floor(y / chunkSize)
+	local chunk = self:getChunk_Chunkspace(cx, cy)
+	
+	if chunk then
+		--tilespace xy
+		local tx = x % chunkSize
+		local ty = y % chunkSize
+		chunk:setBlockId(tx, ty, id)
+
+		--dirtify any chunks that are touching the modified tile
+		self:addDirtyChunk(chunk)
+
+		if tx == 0 and cx > 0 then
+			self:addDirtyChunk(chunk.east)
+		elseif tx == chunkSize - 1 and cx < self.width - 1 then
+			self:addDirtyChunk(chunk.west)
+		end
+
+		if ty == 0 and cy > 0 then
+			self:addDirtyChunk(chunk.north)
+		elseif ty == chunkSize - 1 and cy < self.height - 1 then
+			self:addDirtyChunk(chunk.south)
+		end
+
+		return true
+	end
+end
+
 function World:draw()
 	--todo: only render chunks on-screen
 	local img = self.tileset.img
@@ -164,9 +245,12 @@ function World:draw()
 		local row = self[y]
 		local v = y * size
 		for x = 0, self.width - 1 do
-			love.graphics.draw(row[x].batch, x * size, v)
+			local u = x * size
+			love.graphics.draw(row[x].batch, u, v)
+			love.graphics.line(u, v, u + chunkSize * tileSizePx, v)
+			love.graphics.line(u, v, u, v + chunkSize * tileSizePx)
 			-- for k, v in ipairs(row[x].lightTiles) do
-			-- 	love.graphics.rectangle("fill", unpack(v))
+			-- 	love.graphics.polygon("fill", unpack(v))
 			-- end
 		end
 	end
