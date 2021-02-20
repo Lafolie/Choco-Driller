@@ -30,7 +30,6 @@ function Chunk:init(atlas)
 end
 
 function Chunk:getBlockId(x, y)
-	print("get", x, y)
 	local id = 0
 	if not (x < 0 or x >= self.chunkSize or
 	        y < 0 or y >= self.chunkSize)
@@ -84,7 +83,6 @@ function Chunk:generateBatch(blockList)
 		for x = 0, self.chunkSize - 1 do
 			local u = x * self.gridSize
 			local id, quad = unpack(row[x])
-			print(id, quad)
 			if id > 0 then
 				self.batch:add(blockList[id][quad], u, v)
 			end
