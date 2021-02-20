@@ -10,6 +10,10 @@ require "atlas"
 require "world.block"
 require "world.chunk"
 require "world.blocks.testBlock"
+require "world.blocks.testBlock2"
+require "world.blocks.testBlock3"
+require "world.blocks.testBlock4"
+
 local Lighter = require "lib.lighter"
 
 local floor, ceil = math.floor, math.ceil
@@ -44,7 +48,10 @@ function World:init(width, height)
 
 	blockList = 
 	{
-		TestBlock(self.tileset)
+		TestBlock(self.tileset),
+		TestBlock2(self.tileset),
+		TestBlock3(self.tileset),
+		TestBlock4(self.tileset),
 	}
 
 	--pass1: gen chunks
@@ -53,7 +60,7 @@ function World:init(width, height)
 		self[y] = row
 		for x = 0, width - 1 do
 			local ch = Chunk(self.tileset, x, y)
-			ch:randomise()
+			ch:randomise(blockList)
 
 			row[x] = ch
 		end
@@ -162,7 +169,7 @@ function World:update()
 		block[3] = block[3] + 0.25
 		if block[3] < 100 then
 			local quad = 6 - ceil(block[3] / 20)
-			print(quad)
+			-- print(quad)
 			damagedBlockBatch:add(damagedBlockAtlas[quad], block[1], block[2])
 			dmgBlocks[k] = block
 		end
@@ -172,14 +179,14 @@ function World:update()
 	--junk
 	local mx, my = love.mouse.getPosition()
 	local s = getCanvasScale()
-	-- lighting:updateLight(light, mx / s.x, my / s.y)
+	lighting:updateLight(light, mx / s.x, my / s.y)
 end
 
 
 function World:mousePressed(x, y, btn)
 	x = floor(x / tileSizePx) * tileSizePx
 	y = floor(y / tileSizePx) * tileSizePx
-	print(x, y)
+
 	if btn == 1 then
 		insert(lights, lighting:addLight(x + 8, y + 8, 256, 0.8, 0.75, 0.2, 0.8))
 	else
@@ -210,7 +217,7 @@ function World:damage(x, y, dmg)
 	end
 
 	dmgBlock[3] = dmgBlock[3] - dmg * block.toughness
-	print(id, dmgBlock[3])
+	-- print(id, dmgBlock[3])
 	if dmgBlock[3] <= 0 then
 		print "destroying"
 		damagedBlocks[id] = nil

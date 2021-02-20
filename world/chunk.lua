@@ -90,6 +90,9 @@ function Chunk:randomise(blocks)
 		local row = self[y]
 		for x = 0, self.chunkSize - 1 do
 			local id = love.math.random() > 0.7 and 1 or 0
+			if id == 1 then
+				id = love.math.random(1, #blocks)
+			end
 			row[x][1] = id
 		end
 	end
