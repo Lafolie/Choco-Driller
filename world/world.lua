@@ -2,7 +2,7 @@
 	Co-ordinate spaces:
 
 		* Chunkspace: relative to world[y][x]
-		* Tilespace:  relative to chunk[y][x]
+		* Tilespace:  relative to global tile xy
 		* Worldspace: relative to global pixel xy
 ]]
 
@@ -13,21 +13,29 @@ require "world.blocks.testBlock"
 
 local floor = math.floor
 local tileSizePx = 16
-local chunkSizePx
+local chunkSize, chunkSizePx
+local blockList
 
-World = class {}
+local nullBlock = Block "Null Block"
+
+World = class 
+{
+	gravity = 0.25,
+	tileSizePx = tileSizePx
+}
 
 function World:init(width, height)
 	self.tileset = Atlas("testTiles.png", tileSizePx)
+	chunkSize = Chunk.chunkSize
 	chunkSizePx = Chunk.chunkSize * self.tileset.gridSize
-
-	self.blockList = 
-	{
-		TestBlock(self.tileset)
-	}
 
 	self.width = width
 	self.height = height
+
+	blockList = 
+	{
+		TestBlock(self.tileset)
+	}
 
 	--pass1: gen chunks
 	for y = 0, height - 1 do
@@ -59,13 +67,12 @@ function World:init(width, height)
 		for x = 0, width - 1 do
 			local ch = row[x]
 			ch:autoTile()
-			ch:generateBatch(self.blockList)
+			ch:generateBatch(blockList)
 		end
 	end
 end
 
 function World:getBlock_Worldspace(x, y)
-	local id = 0
 	--chunkspace xy
 	local cx = floor(x / chunkSizePx)
 	local cy = floor(y / chunkSizePx)
@@ -76,9 +83,29 @@ function World:getBlock_Worldspace(x, y)
 		local tx = floor((x % chunkSizePx) / tileSizePx)
 		local ty = floor((y % chunkSizePx) / tileSizePx)
 		id = chunk:getBlockId(tx, ty)
+
+		return blockList[id] or nullBlock
 	end
 
-	return id
+	return nullBlock
+end
+
+function World:getBlock_Tilespace(x, y)
+	--chunkspace xy
+	local cx = floor(x / chunkSize)
+	local cy = floor(y / chunkSize)
+	local chunk = self:getChunk_Chunkspace(cx, cy)
+	
+	if chunk then
+		--tilespace xy
+		local tx = x % chunkSize
+		local ty = y % chunkSize
+		id = chunk:getBlockId(tx, ty)
+
+		return blockList[id] or nullBlock
+	end
+
+	return nullBlock
 end
 
 function World:getChunk(mode, x, y)

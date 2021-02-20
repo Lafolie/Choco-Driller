@@ -58,7 +58,7 @@ function Chunk:randomise(blocks)
 	for y = 0, self.chunkSize - 1 do
 		local row = self[y]
 		for x = 0, self.chunkSize - 1 do
-			local id = love.math.random(2) - 1
+			local id = love.math.random() > 0.7 and 1 or 0
 			row[x] = {id, 1}
 		end
 	end

@@ -11,17 +11,28 @@ function love.load()
 
 end
 
-local id
+local color
+require "actor"
+local act = Actor(0, 0)
 
 function love.update()
 	local mx, my = love.mouse.getPosition()
-	id = world:getBlock_Worldspace(mx, my)
+	act.location.x = mx
+	act.location.y = my
+	if act:phys(world) then
+		color = {1, 0, 0, 1}
+	else
+		color = {1, 1, 1, 1}
+	end
 end
 
 
 function love.draw()
+	love.graphics.setColor(1, 1, 1, 1)
 	world:draw()
-	love.graphics.print(id, 1, 1)
+
+	love.graphics.setColor(color)
+	act:draw()
 end
 
 function love.quit()
