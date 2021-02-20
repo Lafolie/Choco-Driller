@@ -7,9 +7,40 @@ function Actor:init(x, y)
 	self.size = vector(12, 12)
 	self.halfSize = vector(6, 6)
 
+	self.air = 0
 	self.velocity = vector()
 	self.gravity = 1
 	self.friction = 1
+	self.airFriction = 0.5
+
+	self.accel = 1.25
+	self.walkSpeed = 2.75
+	self.quickTurn = 2
+	self.jumpForce = -6
+	self.maxJumps = 1
+	self.jumps = 0
+end
+
+function Actor:addMovement(x, y)
+	local turnAmt = sign(x) ~= sign(self.velocity.x) and self.quickTurn or 1
+	local accel = self.accel * x * (turnAmt * self.air > 0 and 0.5 or 1)
+	local vx = self.velocity.x + accel
+	-- local vy = self.velocity.y + self.accel * y
+	self.velocity.x = math.max(-self.walkSpeed, math.min(vx, self.walkSpeed))
+	-- self.velocity.y = math.max(-self.walkSpeed, math.max(vy, self.walkSpeed))
+end
+
+function Actor:startJump()
+	if self.air == 0 and self.jumps < self.maxJumps then
+		self.jumps = self.jumps + 1
+		self.velocity.y = self.jumpForce
+	end
+end
+
+function Actor:stopJump()
+	if self.air > 0 and self.velocity.y < 0 then
+		self.velocity.y = self.velocity.y * 0.25
+	end
 end
 
 function Actor:phys(world)
@@ -22,6 +53,7 @@ function Actor:phys(world)
 
 	vy = math.min(8, vy + world.gravity * self.gravity)
 	y = y + vy
+	self.air = self.air + 1
 	local top = floor((y - hh) / tileSize)
 	local bottom = floor((y + hh) / tileSize)
 	local left = floor((x - hw + 0.5) / tileSize)
@@ -39,10 +71,17 @@ function Actor:phys(world)
 			hit = true
 			y = bottom * tileSize - hh
 			vy = 0
+			self.air = 0
+			self.jumps = 0
 		end
 	end
 
-	vx = vx * self.friction
+	vx = lerp(vx, 0, 0.4 * (self.air > 0 and self.airFriction or self.friction))
+	print(vx, self.air)
+	if math.abs(vx) <= 0.01 then
+		vx = 0
+	end
+
 	x = x + vx
 	top = floor((y - hh + 0.5) / tileSize)
 	bottom = floor((y + hh - 0.5) / tileSize)

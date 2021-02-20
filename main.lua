@@ -6,9 +6,18 @@ log:init "global"
 
 love.graphics.setDefaultFilter("nearest", "nearest")
 
+function lerp(a, b, x)
+	return (1 - x) * a + x * b
+end
+
+function sign(x)
+	return x < 0 and -1 or (x > 0 and 1 or 0)
+end
+
 -- Canvas ---------------------------------------------------------------------
 local mainCanvas
 local nativeRes = vector(640, 360)
+-- local nativeRes = vector(1024, 576)
 local targetRes = vector(love.graphics.getDimensions())
 local canvasScale = vector(1, 1)
 local canvasOffset = vector()
@@ -83,11 +92,12 @@ local act = Actor(0, 0)
 function love.update()
 	local mx, my = love.mouse.getPosition()
 
-	local x, y = 0, 0
+	local x = 0
 	if love.keyboard.isDown("left") then x = x - 1 end
 	if love.keyboard.isDown("right") then x = x + 1 end
 
-	act.velocity.x = x * 1.75
+	-- act.velocity.x = x * 1.75
+	act:addMovement(x)
 	-- act.velocity.y = y
 
 	if act:phys(world) then
@@ -142,12 +152,14 @@ function love.keypressed(key, scan, isRepeat)
 	end
 
 	if key == "z" then
-		act.velocity.y = -6
+		act:startJump()
 	end
 end
 
 function love.keyreleased(key, scan)
-
+	if key == "z" then
+		act:stopJump()
+	end
 end
 
 -------------------------------------------------------------------------------
