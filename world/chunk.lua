@@ -30,14 +30,28 @@ function Chunk:init(atlas)
 end
 
 function Chunk:getBlockId(x, y)
-	local id = 0
+	local id
 	if not (x < 0 or x >= self.chunkSize or
 	        y < 0 or y >= self.chunkSize)
 	then
 		id = self[y][x][1]
+	else
+		id = self:getNeighbouringBlockId(x, y) or 0
 	end
 
 	return id
+end
+
+function Chunk:getNeighbouringBlockId(x, y)
+	if y < 0 and self.north then
+		return self.north:getBlockId(x, self.chunkSize + y)
+	elseif y >= self.chunkSize and self.south then
+		return self.south:getBlockId(x, y - self.chunkSize)
+	elseif x < 0 and self.west then
+		return self.west:getBlockId(self.chunkSize + x, y)
+	elseif x >= self.chunkSize and self.east then
+		return self.east:getBlockId(self.chunkSize - x, y)
+	end
 end
 
 function Chunk:randomise(blocks)

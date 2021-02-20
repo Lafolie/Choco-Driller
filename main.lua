@@ -4,20 +4,24 @@ vector = require "lib.brinevector.brinevector"
 -------------------------------------------------------------------------------
 -- Main Callbacks
 -------------------------------------------------------------------------------
+require "world.world"
+local world = World(4, 4)
 
 function love.load()
 
 end
 
-function love.update()
+local id
 
+function love.update()
+	local mx, my = love.mouse.getPosition()
+	id = world:getBlock_Worldspace(mx, my)
 end
 
-require "world.world"
-local world = World(4, 4)
 
 function love.draw()
 	world:draw()
+	love.graphics.print(id, 1, 1)
 end
 
 function love.quit()
