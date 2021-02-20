@@ -13,24 +13,11 @@ function love.update()
 
 end
 
-require "atlas"
-require "world.blocks.testBlock"
-require "world.chunk"
-tiles = Atlas("testTiles.png")
-
-blockList = {TestBlock(tiles)}
-
-local chunks = {}
-for n=1, 4 do
-	local ch = Chunk(tiles)
-	ch:randomise()
-	ch:generateBatch(blockList)
-	chunks[n] = ch
-end
-
+require "world.world"
+local world = World(4, 4)
 
 function love.draw()
-	love.graphics.draw(chunks[1].batch, 16, 16)
+	world:draw()
 end
 
 function love.quit()

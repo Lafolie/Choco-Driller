@@ -10,8 +10,7 @@ function Block:init(atlas, x, y, name)
 	-- local cols = math.floor(w / size)
 	local rows = math.floor(atlas.img:getHeight() / size)
 	local startTile = rows * y + x
-	for n = startTile, startTile + 15 do
-		print(n)
+	for n = startTile, startTile + 16 do
 		table.insert(self, atlas[n])
 	end
 end
