@@ -1,6 +1,9 @@
 class = require "lib.class"
 vector = require "lib.brinevector.brinevector"
 
+log = require "lib.logger"
+log:init "global"
+
 -------------------------------------------------------------------------------
 -- Main Callbacks
 -------------------------------------------------------------------------------
@@ -32,6 +35,8 @@ function love.update()
 	else
 		color = {1, 1, 1, 1}
 	end
+
+	world:update()
 end
 
 
@@ -41,6 +46,8 @@ function love.draw()
 
 	love.graphics.setColor(color)
 	act:draw()
+
+	love.graphics.print(string.format("%dfps", love.timer.getFPS()), 1, 1)
 end
 
 function love.quit()
