@@ -172,7 +172,7 @@ end
 
 function love.mousepressed(x, y, btn)
 	x, y = screenToWorld(x, y)
-	world:damage(x, y, 100)
+	world:damage(x, y, 10)
 	-- world:mousePressed(x, y, btn)
 end
 

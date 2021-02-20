@@ -12,13 +12,15 @@ require "world.chunk"
 require "world.blocks.testBlock"
 local Lighter = require "lib.lighter"
 
-local floor = math.floor
+local floor, ceil = math.floor, math.ceil
+local insert = table.insert
 local tileSizePx = 16
 local chunkSize, chunkSizePx
 local blockList
-local lighting = Lighter({})
+local lighting = Lighter({litPolygons = false})
 
 local nullBlock = Block "Null Block"
+
 
 World = class 
 {
@@ -26,7 +28,9 @@ World = class
 	tileSizePx = tileSizePx
 }
 
+local damagedBlockAtlas = Atlas("blockBreak.png", 16)
 local damagedBlocks = {}
+local damagedBlockBatch = love.graphics.newSpriteBatch(damagedBlockAtlas.img, 1024, "stream")
 
 function World:init(width, height)
 	self.tileset = Atlas("testTiles.png", tileSizePx)
@@ -138,7 +142,12 @@ end
 local light = lighting:addLight(0, 0, 256, 1, 1, 1, 1)
 local lights = {}
 
+-------------------------------------------------------------------------------
+-- Update
+-------------------------------------------------------------------------------
+
 function World:update()
+	--update dirty chunks
 	for n = #self.dirtyChunks, 1, -1 do
 		local chunk = table.remove(self.dirtyChunks, n)
 		local lightTiles = chunk:autoTile()
@@ -146,9 +155,24 @@ function World:update()
 		chunk:generateBatch(blockList)
 	end
 
+	--update damaged blocks
+	damagedBlockBatch:clear()
+	local dmgBlocks = {}
+	for k, block in pairs(damagedBlocks) do
+		block[3] = block[3] + 0.25
+		if block[3] < 100 then
+			local quad = 6 - ceil(block[3] / 20)
+			print(quad)
+			damagedBlockBatch:add(damagedBlockAtlas[quad], block[1], block[2])
+			dmgBlocks[k] = block
+		end
+	end
+	damagedBlocks = dmgBlocks
+
+	--junk
 	local mx, my = love.mouse.getPosition()
 	local s = getCanvasScale()
-	lighting:updateLight(light, mx / s.x, my / s.y)
+	-- lighting:updateLight(light, mx / s.x, my / s.y)
 end
 
 
@@ -157,7 +181,7 @@ function World:mousePressed(x, y, btn)
 	y = floor(y / tileSizePx) * tileSizePx
 	print(x, y)
 	if btn == 1 then
-		table.insert(lights, lighting:addLight(x + 8, y + 8, 256, 0.8, 0.75, 0.2, 0.8))
+		insert(lights, lighting:addLight(x + 8, y + 8, 256, 0.8, 0.75, 0.2, 0.8))
 	else
 		for k, v in ipairs(lights) do
 			if v.x == x and v.y == y then
@@ -174,7 +198,6 @@ function World:damage(x, y, dmg)
 
 	local block = self:getBlock_Tilespace(tx, ty)
 
-	print(tx, ty)
 	if block == nullBlock then
 		return
 	end
@@ -182,7 +205,7 @@ function World:damage(x, y, dmg)
 	local id = string.format("%d:%d", tx, ty)
 	local dmgBlock = damagedBlocks[id]
 	if not dmgBlock then
-		dmgBlock = {tx, ty, 100}
+		dmgBlock = {tx * tileSizePx, ty * tileSizePx, 100}
 		damagedBlocks[id] = dmgBlock
 	end
 
@@ -203,7 +226,7 @@ function World:addDirtyChunk(chunk)
 		end
 	end
 
-	table.insert(self.dirtyChunks, chunk)
+	insert(self.dirtyChunks, chunk)
 end
 
 function World:setBlock_Tilespace(x, y, id)
@@ -247,13 +270,16 @@ function World:draw()
 		for x = 0, self.width - 1 do
 			local u = x * size
 			love.graphics.draw(row[x].batch, u, v)
-			love.graphics.line(u, v, u + chunkSize * tileSizePx, v)
-			love.graphics.line(u, v, u, v + chunkSize * tileSizePx)
+
+			-- love.graphics.line(u, v, u + chunkSize * tileSizePx, v)
+			-- love.graphics.line(u, v, u, v + chunkSize * tileSizePx)
+
 			-- for k, v in ipairs(row[x].lightTiles) do
 			-- 	love.graphics.polygon("fill", unpack(v))
 			-- end
 		end
 	end
 
+	love.graphics.draw(damagedBlockBatch, 0, 0)
 	lighting:drawLights()
 end
