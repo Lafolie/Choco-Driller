@@ -131,10 +131,29 @@ function World:getChunk_Worldspace(x, y)
 end
 
 
-local light = lighting:addLight(0, 0, 128, 1, 1, 1, 1)
+local light = lighting:addLight(0, 0, 256, 1, 1, 1, 1)
+local lights = {}
 function World:update()
 	local mx, my = love.mouse.getPosition()
-	lighting:updateLight(light, mx, my)
+	local s = getCanvasScale()
+	lighting:updateLight(light, mx / s.x, my / s.y)
+end
+
+
+function World:mousePressed(x, y, btn)
+	x = floor(x / tileSizePx) * tileSizePx
+	y = floor(y / tileSizePx) * tileSizePx
+	print(x, y)
+	if btn == 1 then
+		table.insert(lights, lighting:addLight(x + 8, y + 8, 256, 0.8, 0.75, 0.2, 0.8))
+	else
+		for k, v in ipairs(lights) do
+			if v.x == x and v.y == y then
+				lighting:removeLight(v)
+				return
+			end
+		end
+	end
 end
 
 function World:draw()

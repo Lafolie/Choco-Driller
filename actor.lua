@@ -4,11 +4,11 @@ Actor = class {}
 
 function Actor:init(x, y)
 	self.location = vector.isVector(x) and x.copy() or vector(x, y)
-	self.size = vector(16, 16)
-	self.halfSize = vector(8, 8)
+	self.size = vector(12, 12)
+	self.halfSize = vector(6, 6)
 
 	self.velocity = vector()
-	self.gravity = 0
+	self.gravity = 1
 	self.friction = 1
 end
 
@@ -20,7 +20,7 @@ function Actor:phys(world)
 
 	local hit = false
 
-	vy = vy + world.gravity * self.gravity
+	vy = math.min(8, vy + world.gravity * self.gravity)
 	y = y + vy
 	local top = floor((y - hh) / tileSize)
 	local bottom = floor((y + hh) / tileSize)
@@ -31,12 +31,14 @@ function Actor:phys(world)
 			--hit ceiling
 			hit = true
 			y = top * tileSize + tileSize + hh
+			vy = vy * 0.25
 		end
 
 		if world:getBlock_Tilespace(n, bottom).isSolid then
 			--hit floor
 			hit = true
 			y = bottom * tileSize - hh
+			vy = 0
 		end
 	end
 

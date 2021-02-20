@@ -128,7 +128,7 @@ function Chunk:autoTile()
 end
 
 function Chunk:updateLightTiles(lighting, newLightTiles)
-	print "calc chunk lighting"
+	log:echo("Updating lighting for chunk %03d,%03d", self.gridLocation.x, self.gridLocation.y)
 	local lightTiles = {}
 
 	--remove old unused tiles
@@ -141,7 +141,6 @@ function Chunk:updateLightTiles(lighting, newLightTiles)
 	--update lighting
 	local n = 1
 	for _, v in pairs(newLightTiles) do
-		-- log:echo("Adding polygon %d", n)
 		insert(lightTiles, v)
 		lighting:addPolygon(v)
 		n = n + 1
